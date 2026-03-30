@@ -4,11 +4,11 @@
     <a href="https://www.espm.br/cursos-de-graduacao/sistemas-de-informacao/"><img src="https://raw.githubusercontent.com/tech-espm/misc-template/main/logo.png" alt="Sistemas de Informação ESPM" style="width: 375px;"/></a>
 </p>
 
-# Nome do Grupo
+# Os Makapa
 
 ### 2026-01
 
-## Visão Geral
+## Monitoramento e controle de ocupação de salas em faculdades e empresas
 
 ## Participantes
 
@@ -16,11 +16,11 @@
 - [Gustavo Gomes](https://github.com/GustavoG0m3s)
 - [Kaique Lira](https://github.com/KaiqueSLira)
 
-## Objetivos do Projeto
+## Identificar em tempo real, se uma sala está disponível, permitindo melhor gestão dos espaços físicos e melhoria da experiência do usuário
 
-## Configuração do Projeto
+## 
 
-## Mais Informações
+## Trasformamos dados em decisões inteligentes para otimizar espaços e melhorar experiências.
 
 # Licença
 
