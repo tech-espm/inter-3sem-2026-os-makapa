@@ -8,14 +8,22 @@ const router = express.Router();
 const url_api = process.env.url_api;
 
 router.get("/", wrap(async (req, res) => {
-	const response = await axios.get(url_api + "?sensor=passage&data_inicial=2026-04-26&data_final=2026-04-28");
-	const dados = response.data;
-	console.log(dados);
-
 	await sql.connect(async sql => {
-		const lista = await sql.query("select 1");
+		let lista = await sql.query("select max(id) id from presenca");
 
-		console.log(lista);
+		let id_inferior = 82595;
+		if (lista[0].id) {
+			id_inferior = lista[0].id;
+		}
+
+		const response = await axios.get(url_api + "?sensor=presence&id_inferior=" + id_inferior);
+		const dadosNovos = response.data;
+
+		for (let i = 0; i < dadosNovos.length; i++) {
+			const dadoNovo = dadosNovos[i];
+
+			await sql.query("insert into presenca (id, data, id_sensor, delta, bateria, ocupado) values (?, ?, ?, ?, ?, ?)", [dadoNovo.id, dadoNovo.data, dadoNovo.id_sensor, dadoNovo.delta, dadoNovo.bateria, dadoNovo.ocupado]);
+		}
 	});
 
 	let nomeDoUsuarioQueVeioDoBanco = "Rafael";
