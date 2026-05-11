@@ -7,7 +7,7 @@ const router = express.Router();
 
 const url_api = process.env.url_api;
 
-router.get("/", wrap(async (req, res) => {
+async function atualizarDados() {
 	await sql.connect(async sql => {
 		let lista = await sql.query("select max(id) id from presenca");
 
@@ -25,7 +25,9 @@ router.get("/", wrap(async (req, res) => {
 			await sql.query("insert into presenca (id, data, id_sensor, delta, bateria, ocupado) values (?, ?, ?, ?, ?, ?)", [dadoNovo.id, dadoNovo.data, dadoNovo.id_sensor, dadoNovo.delta, dadoNovo.bateria, dadoNovo.ocupado]);
 		}
 	});
+}
 
+router.get("/", wrap(async (req, res) => {
 	let nomeDoUsuarioQueVeioDoBanco = "Rafael";
 
 	let opcoes = {
@@ -34,6 +36,80 @@ router.get("/", wrap(async (req, res) => {
 	};
 
 	res.render("index/index", opcoes);
+}));
+
+router.get("/monitoramentoTempoReal", wrap(async (req, res) => {
+	await atualizarDados();
+
+	let dados;
+
+	await sql.connect(async sql => {
+
+		dados = await sql.query(`
+			(select id_sensor, ocupado, time_to_sec(timediff(now(), data)) delta_agora from presenca where id_sensor = 1 order by id desc limit 1)
+			union all
+			(select id_sensor, ocupado, time_to_sec(timediff(now(), data)) delta_agora from presenca where id_sensor = 2 order by id desc limit 1)
+			union all
+			(select id_sensor, ocupado, time_to_sec(timediff(now(), data)) delta_agora from presenca where id_sensor = 3 order by id desc limit 1)
+			union all
+			(select id_sensor, ocupado, time_to_sec(timediff(now(), data)) delta_agora from presenca where id_sensor = 4 order by id desc limit 1)
+			union all
+			(select id_sensor, ocupado, time_to_sec(timediff(now(), data)) delta_agora from presenca where id_sensor = 5 order by id desc limit 1)
+			union all
+			(select id_sensor, ocupado, time_to_sec(timediff(now(), data)) delta_agora from presenca where id_sensor = 6 order by id desc limit 1)
+			union all
+			(select id_sensor, ocupado, time_to_sec(timediff(now(), data)) delta_agora from presenca where id_sensor = 7 order by id desc limit 1)
+			union all
+			(select id_sensor, ocupado, time_to_sec(timediff(now(), data)) delta_agora from presenca where id_sensor = 8 order by id desc limit 1)
+		`);
+
+	});
+
+	res.json(dados);
+}));
+
+router.get("/presencaTotalPorDia", wrap(async (req, res) => {
+	await atualizarDados();
+
+	const data_inicial = req.query["data_inicial"];
+	const data_final = req.query["data_final"];
+
+	let dados;
+
+	await sql.connect(async sql => {
+
+		dados = await sql.query(`
+			select id_sensor, date_format(date(data), '%d/%m/%Y') dia, cast(sum(delta) as signed) presenca_total from presenca
+			where data between ? and ? and ocupado = 0
+			group by id_sensor, dia
+			order by id_sensor, dia
+		`, [data_inicial, data_final]);
+
+	});
+
+	res.json(dados);
+}));
+
+router.get("/presencaMediaPorDia", wrap(async (req, res) => {
+	await atualizarDados();
+
+	const data_inicial = req.query["data_inicial"];
+	const data_final = req.query["data_final"];
+
+	let dados;
+
+	await sql.connect(async sql => {
+
+		dados = await sql.query(`
+			select id_sensor, date_format(date(data), '%d/%m/%Y') dia, cast(avg(delta) as float) presenca_media from presenca
+			where data between ? and ? and ocupado = 0
+			group by id_sensor, dia
+			order by id_sensor, dia
+		`, [data_inicial, data_final]);
+
+	});
+
+	res.json(dados);
 }));
 
 router.get("/teste", wrap(async (req, res) => {
