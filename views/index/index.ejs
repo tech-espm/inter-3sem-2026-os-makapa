@@ -1,31 +1,255 @@
-﻿<h1>Eu sou a página index!</h1>
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Makapa — Monitoramento de Salas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
 
-<p>Oi, <%= usuario %>! 😅</p>
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">MAK<span>APA</span></div>
+    <div class="logo-sub">Room Intelligence</div>
+  </div>
+  <div class="nav-section">Monitoramento</div>
+  <div class="nav-item active" data-page="dashboard">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+    Dashboard
+  </div>
+  <div class="nav-item" data-page="salas">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+    Salas
+  </div>
+  <div class="nav-item" data-page="historico">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17l-5-5-2 2-4-4"/></svg></div>
+    Historico
+  </div>
+  <div class="nav-section" style="margin-top:16px">Analytics</div>
+  <div class="nav-item" data-page="heatmap">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1"/><rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1"/><rect x="10" y="10" width="4" height="4" rx="1"/><rect x="17" y="10" width="4" height="4" rx="1"/><rect x="3" y="17" width="4" height="4" rx="1"/><rect x="10" y="17" width="4" height="4" rx="1"/><rect x="17" y="17" width="4" height="4" rx="1"/></svg></div>
+    Heatmap
+  </div>
+  <div class="nav-item" data-page="sensores">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 000 11.4M17.7 6.3a8 8 0 010 11.4M2.1 2.1a14 14 0 000 19.8M21.9 2.1a14 14 0 010 19.8"/></svg></div>
+    Sensores
+  </div>
+  <div class="sidebar-footer">
+    <div class="status-dot">
+      <div class="dot"></div>
+      Sistema online
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);margin-top:6px;" id="last-update">Atualizado agora</div>
+  </div>
+</nav>
 
-<p>
-	<img src="/public/images/emoji.png" alt="Emoji 😊" />
-</p>
+<main class="main">
 
-<% for (let contador = 0; contador < quantidadeDeRepeticoes; contador++) { %>
+  <div class="page active" id="page-dashboard">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Visao geral — tempo real</div>
+      </div>
+      <div class="topbar-right">
+        <div>
+          <div class="clock" id="clock">--:--:--</div>
+          <div class="date-label" id="date-label">--</div>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-card accent" style="animation-delay:.05s">
+        <div class="kpi-label">Total de Salas</div>
+        <div class="kpi-value accent">8</div>
+        <div class="kpi-delta">Sensores LoRaWAN ativos</div>
+      </div>
+      <div class="kpi-card green" style="animation-delay:.1s">
+        <div class="kpi-label">Disponiveis</div>
+        <div class="kpi-value green" id="kpi-livre">—</div>
+        <div class="kpi-delta">Prontas para uso</div>
+      </div>
+      <div class="kpi-card red" style="animation-delay:.15s">
+        <div class="kpi-label">Ocupadas</div>
+        <div class="kpi-value red" id="kpi-ocupado">—</div>
+        <div class="kpi-delta">Em uso agora</div>
+      </div>
+      <div class="kpi-card muted" style="animation-delay:.2s">
+        <div class="kpi-label">Taxa de Ocupacao</div>
+        <div class="kpi-value" id="kpi-taxa">—%</div>
+        <div class="kpi-delta" style="margin-top:8px">
+          <div class="prog-bar"><div class="prog-fill red" id="taxa-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-3">
+      <div class="panel" style="animation-delay:.25s">
+        <div class="panel-header">
+          <div class="panel-title">Ocupacao em Tempo Real</div>
+          <div class="panel-badge">LIVE</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chart-live" height="180"></canvas>
+        </div>
+      </div>
+      <div class="panel" style="animation-delay:.3s">
+        <div class="panel-header">
+          <div class="panel-title">Status Atual</div>
+        </div>
+        <div id="status-list"></div>
+      </div>
+    </div>
+    <div class="panel" style="animation-delay:.35s">
+      <div class="panel-header">
+        <div class="panel-title">Salas — Visao Rapida</div>
+        <div style="font-size:10px;color:var(--text-dim);">Clique para detalhes</div>
+      </div>
+      <div class="salas-grid" id="salas-grid-dash"></div>
+    </div>
+  </div>
 
-	<h2>😱</h2>
+  <div class="page" id="page-salas">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Salas</div>
+        <div class="page-sub">Gerenciamento e status detalhado</div>
+      </div>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" data-filter="todas">Todas</button>
+      <button class="filter-btn" data-filter="livre">Disponiveis</button>
+      <button class="filter-btn" data-filter="ocupado">Ocupadas</button>
+    </div>
+    <div class="panel">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Sensor</th><th>Sala</th><th>Status</th><th>Bateria</th>
+            <th>Ultima Leitura</th><th>Delta (seg)</th><th>Ocupacao Hoje</th>
+          </tr>
+        </thead>
+        <tbody id="salas-tbody"></tbody>
+      </table>
+    </div>
+  </div>
 
-	<p>O que é isso?!?!</p>
+  <div class="page" id="page-historico">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Historico</div>
+        <div class="page-sub">Dados de ocupacao por periodo</div>
+      </div>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" data-period="7">Ultimos 7 dias</button>
+      <button class="filter-btn" data-period="14">14 dias</button>
+      <button class="filter-btn" data-period="30">30 dias</button>
+      <select class="filter-btn" id="hist-sensor-select">
+        <option value="0">Todos os sensores</option>
+        <option value="1">Sensor 01</option><option value="2">Sensor 02</option>
+        <option value="3">Sensor 03</option><option value="4">Sensor 04</option>
+        <option value="5">Sensor 05</option><option value="6">Sensor 06</option>
+        <option value="7">Sensor 07</option><option value="8">Sensor 08</option>
+      </select>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Total de Presenca por Dia (segundos)</div></div>
+        <canvas id="chart-hist-total" height="200"></canvas>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Media de Presenca por Dia</div></div>
+        <canvas id="chart-hist-media" height="200"></canvas>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">Comparativo por Sensor</div></div>
+      <canvas id="chart-hist-comp" height="160"></canvas>
+    </div>
+  </div>
 
-<% } %>
+  <div class="page" id="page-heatmap">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Heatmap</div>
+        <div class="page-sub">Intensidade de uso por hora e sensor</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Ocupacao por Hora do Dia</div>
+        <div style="display:flex;gap:12px;align-items:center;font-size:10px;color:var(--text-dim)">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#0d2b3e;border-radius:2px;display:inline-block"></span>Vazio</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#00e5ff;border-radius:2px;display:inline-block"></span>Alto</span>
+        </div>
+      </div>
+      <div id="heatmap-container"></div>
+    </div>
+    <div class="grid-2" style="margin-top:20px">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Pico de Uso — Hora</div></div>
+        <canvas id="chart-peak-hour" height="180"></canvas>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Distribuicao Semanal</div></div>
+        <canvas id="chart-weekday" height="180"></canvas>
+      </div>
+    </div>
+  </div>
 
-<%- include("exemplo-include") %>
+  <div class="page" id="page-sensores">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Sensores</div>
+        <div class="page-sub">Saude e telemetria dos dispositivos</div>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-card green"><div class="kpi-label">Online</div><div class="kpi-value green" id="sens-online">—</div></div>
+      <div class="kpi-card red"><div class="kpi-label">Offline</div><div class="kpi-value red" id="sens-offline">—</div></div>
+      <div class="kpi-card accent"><div class="kpi-label">Bateria Media</div><div class="kpi-value accent" id="sens-bat">—%</div></div>
+      <div class="kpi-card muted"><div class="kpi-label">Alertas</div><div class="kpi-value" id="sens-alerts">—</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">Telemetria dos Dispositivos</div></div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Device ID</th><th>Topic MQTT</th><th>Status</th><th>Bateria</th>
+            <th>Ultimo Timestamp</th><th>Delta (seg)</th><th>Saude</th>
+          </tr>
+        </thead>
+        <tbody id="sens-tbody"></tbody>
+      </table>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-header"><div class="panel-title">Bateria por Sensor</div></div>
+      <canvas id="chart-battery" height="160"></canvas>
+    </div>
+  </div>
 
-<p>Tchau, <%= usuario %>!</p>
+</main>
 
-<%- contentFor("espaco-head") %>
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" id="modal-close">x</button>
+    <div class="modal-title" id="modal-title">—</div>
+    <div class="modal-sub" id="modal-sub">—</div>
+    <div class="modal-stat-row">
+      <div class="modal-stat"><div class="modal-stat-label">Status Atual</div><div class="modal-stat-value" id="modal-status">—</div></div>
+      <div class="modal-stat"><div class="modal-stat-label">Bateria</div><div class="modal-stat-value" id="modal-bat">—</div></div>
+      <div class="modal-stat"><div class="modal-stat-label">Delta (seg)</div><div class="modal-stat-value" id="modal-delta">—</div></div>
+      <div class="modal-stat"><div class="modal-stat-label">Ocupacao Hoje</div><div class="modal-stat-value" id="modal-ocup">—</div></div>
+    </div>
+    <div class="panel-title" style="margin-bottom:12px;font-size:13px">Historico 7 dias</div>
+    <canvas id="modal-chart" height="120"></canvas>
+  </div>
+</div>
 
-<style type="text/css">
-	body {
-		color: blue;
-	}
-</style>
+<div class="tooltip" id="tooltip"></div>
 
-<%- contentFor("espaco-barra") %>
-
-<i>Estou na barra! 😊</i>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>
