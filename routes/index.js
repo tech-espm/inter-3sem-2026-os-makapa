@@ -1,14 +1,40 @@
 const express = require('express');
+const wrap = require("express-async-error-wrapper");
+const axios = require("axios");
 const router = express.Router();
 const Sql = require('../data/sql');
 
-router.get('/', (req, res) => {
-    res.render('index/index', { layout: false });
-});
+const url_api = process.env.url_api;
 
-router.get('/monitoramentoTempoReal', async (req, res) => {
+router.get('/', wrap(async (req, res) => {
+    res.render('index/index', { layout: false });
+}));
+
+async function atualizarDados() {
+	await Sql.connect(async sql => {
+		let lista = await sql.query("select max(id) id from presenca");
+
+		let id_inferior = 82595;
+		if (lista[0].id) {
+			id_inferior = lista[0].id;
+		}
+
+		const response = await axios.get(url_api + "?sensor=presence&id_inferior=" + id_inferior);
+		const dadosNovos = response.data;
+
+		for (let i = 0; i < dadosNovos.length; i++) {
+			const dadoNovo = dadosNovos[i];
+
+			await sql.query("insert into presenca (id, data, id_sensor, delta, bateria, ocupado) values (?, ?, ?, ?, ?, ?)", [dadoNovo.id, dadoNovo.data, dadoNovo.id_sensor, dadoNovo.delta, dadoNovo.bateria, dadoNovo.ocupado]);
+		}
+	});
+}
+
+router.get('/monitoramentoTempoReal', wrap(async (req, res) => {
     try {
-        const dados = await Sql.connect(async (sql) => {
+		await atualizarDados();
+
+		const dados = await Sql.connect(async (sql) => {
             return await sql.query(`
                 (SELECT id_sensor, ocupado, time_to_sec(timediff(now(), data)) delta_agora FROM presenca WHERE id_sensor = 1 ORDER BY id DESC LIMIT 1)
                 UNION ALL
@@ -32,14 +58,14 @@ router.get('/monitoramentoTempoReal', async (req, res) => {
         console.error("Erro na API:", err);
         res.status(500).json({ error: "Erro ao buscar sensores" });
     }
-});
+}));
 
-router.get('/historico', async (req, res) => {
+router.get('/historico', wrap(async (req, res) => {
     try {
         const dias = parseInt(req.query.dias) || 30;
         const dados = await Sql.connect(async (sql) => {
             return await sql.query(`
-                SELECT id_sensor, DATE(data) AS dia,
+                SELECT id_sensor, date_format(data, '%Y-%m-%d') AS dia,
                        SUM(delta) AS presenca_total,
                        AVG(delta) AS presenca_media
                 FROM presenca
@@ -48,11 +74,15 @@ router.get('/historico', async (req, res) => {
                 ORDER BY id_sensor, dia
             `, [dias]);
         });
+		for (let i = 0; i < dados.length; i++) {
+			dados[i].presenca_total = parseFloat(dados[i].presenca_total);
+			dados[i].presenca_media = parseFloat(dados[i].presenca_media);
+		}
         res.json({ historico: dados });
     } catch (err) {
         console.error("Erro no histórico:", err);
         res.status(500).json({ historico: [] });
     }
-});
+}));
 
 module.exports = router;

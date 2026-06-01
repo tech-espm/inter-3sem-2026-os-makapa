@@ -250,6 +250,7 @@ function renderDashboard() {
     </div>
   `).join('');
 
+  /*
   const canvas = document.getElementById('chart-live');
   if (liveHistory.length > 1) {
     requestAnimationFrame(() => {
@@ -259,6 +260,7 @@ function renderDashboard() {
       );
     });
   }
+  */
 }
 
 // ─── Atualização automática ──────────────────────────────────────────────────
@@ -268,9 +270,8 @@ async function refreshData() {
   if (activePage === 'dashboard') renderDashboard();
   if (activePage === 'salas')     renderSalasTable();
   if (activePage === 'sensores')  renderSensores();
+  setTimeout(refreshData, 5000);
 }
-
-setInterval(refreshData, 5000);
 
 // ─── Tabela de Salas ─────────────────────────────────────────────────────────
 let filterSala = 'todas';
@@ -489,7 +490,7 @@ document.addEventListener('mousemove', e => {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 (async () => {
-  await fetchSensorData();
+  await refreshData();
   await fetchHistorico(30);
   renderDashboard();
 })();
