@@ -8,11 +8,11 @@ const app = express();
 // 1. Inicialização do Banco de Dados
 // Se você não usa .env, substitua process.env.DB_HOST pelos valores reais
 Sql.init({
-    host: process.env.sql_host || 'localhost',
-    user: process.env.sql_user || 'root',
-    password: process.env.sql_password || 'root',
-    database: process.env.sql_database || 'makapa',
-    connectionLimit: process.env.sql_connectionLimit || 30
+    host: process.env.sql_host ,
+    user: process.env.sql_user,
+    password: process.env.sql_password,
+    database: process.env.sql_database,
+    connectionLimit: process.env.sql_connectionLimit
 });
 
 // 2. Configurações do Express
@@ -29,7 +29,7 @@ const indexRoutes = require('./routes/index');
 app.use('/', indexRoutes);
 
 // 4. Iniciar Servidor
-const PORT = 3000;
+const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
